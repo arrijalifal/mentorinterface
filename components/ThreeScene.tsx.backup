@@ -1,0 +1,78 @@
+import React, { useRef, useEffect, useState } from 'react';
+import * as THREE from 'three';
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+export default function ThreeScene({ x, y, z }: { x: number, y: number, z: number }) {
+    const mountRef = useRef<HTMLDivElement | null>(null);
+    const [currentRotation, setCurrentRotation] = useState({ x: 0, y: 0, z: 0 });
+
+    useEffect(() => {
+        // Inisialisasi scene, camera, dan renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        // Tambahkan renderer ke div
+        mountRef.current?.appendChild(renderer.domElement);
+
+        // Tambahkan objek ke scene
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+        const cube = new THREE.Mesh(geometry, material);
+        // scene.add(cube);
+
+        const group = new THREE.Group();
+        group.add(cube);
+
+        group.position.x = -0.25;
+        scene.add(group);
+
+        camera.position.set(3, 3, 4);
+
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+
+        camera.aspect = (window.innerWidth / 3) / (window.innerHeight / 2);
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth / 3, window.innerHeight / 2);
+
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth / 3, window.innerHeight / 2);
+        });
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        
+        // Loop rendering
+        const animate = function () {
+            controls.update();
+            // console.log(controls.target.x);
+
+            // Interpolasi rotasi
+            setCurrentRotation(prev => {
+                const newRotation = {
+                    x: x, // 0.1 adalah faktor interpolasi
+                    y: y,
+                    z: z,
+                };
+                cube.rotation.set(newRotation.x, newRotation.y, newRotation.z);
+                return newRotation;
+            });
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        // Cleanup
+        return () => {
+            mountRef.current?.removeChild(renderer.domElement);
+            renderer.dispose();
+        };
+    }, [x, y, z]);
+
+    return <div ref={mountRef} />;
+}

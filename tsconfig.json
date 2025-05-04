@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/ThreeScene.tsx.backup", "app/page.tsx", "app/manualcontrol/page.tsx.backup", "components/RobotArm.tsx", "components/RobotArm.tsx.backup.backup", "components/RobotArm.tsx.backup", "lib/forwardKinematics.ts", "components/RobotMentor.tsx"],
   "exclude": ["node_modules"]
 }

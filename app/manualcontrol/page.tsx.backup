@@ -1,0 +1,110 @@
+'use client'
+
+import Button from "@/components/Button";
+import { useState } from "react";
+import { useEffect } from "react";
+import ThreeScene from '@/components/ThreeScene';
+
+export default function Dashboard() {
+    const [mode, setMode] = useState('forward');
+    const [sliderValues, setSliderValues] = useState([0, 0, 0]);
+    const [messages, setMessages] = useState<string[]>([]);
+    const [input, setInput] = useState("");
+    const [ws, setWs] = useState<WebSocket>();
+
+    useEffect(() => {
+        const websocket = new WebSocket("ws://192.168.7.72/ws");
+
+        websocket.onopen = () => {
+            console.log("Connected to WebSocket server");
+        };
+
+        websocket.onmessage = (event) => {
+            console.log("Message from server:", event.data);
+            setMessages((prev) => [...prev, event.data]);
+        };
+
+        websocket.onclose = () => {
+            console.log("Disconnected from WebSocket server");
+        };
+
+        setWs(websocket);
+
+        return () => {
+            websocket.close();
+        };
+    }, []);
+
+    const sendCommand = (command: string) => {
+        if (ws) {
+            ws.send(command);
+        }
+    };
+
+    const handleSliderChange = (index: number, newValue: number) => {
+        const updatedValues = [...sliderValues];
+        updatedValues[index] = newValue;
+        setSliderValues(updatedValues);
+    };
+
+    return <main className="mt-10 lg:flex lg:justify-around">
+        <section>
+            <ThreeScene x={sliderValues[0]} y={sliderValues[1]} z={sliderValues[2]}/>
+        </section>
+        <section>
+
+            <div className="flex gap-3">
+                <Button onClick={() => setMode('forward')} active={(mode === 'forward')}>Forward Kinematics</Button>
+                <Button onClick={() => setMode('inverse')} active={(mode === 'inverse')} >Inverse Kinematics</Button>
+            </div>
+            <div>
+                <h1 className="capitalize text-4xl text-center my-6">{mode} kinematics mode</h1>
+                {
+                    (mode == 'forward') ?
+                        <div>
+                            <div className="grid gap-6">
+                                {sliderValues.map((value, index) => (
+                                    <div key={index} className="flex">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="10"
+                                            step="0.1"
+                                            value={value}
+                                            className="w-full"
+                                            onChange={(e) => handleSliderChange(index, parseFloat(e.target.value))}
+                                        />
+                                        <p className="ml-3">{value}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div> :
+                        <div className="flex flex-col">
+                            <label htmlFor="x_pos">X Position</label>
+                            <input type="text" className="border" name="x_pos" id="x_pos" />
+                            <label htmlFor="y_pos">Y Position</label>
+                            <input type="text" className="border" name="y_pos" id="y_pos" />
+                            <label htmlFor="z_pos">Z Position</label>
+                            <input type="text" className="border" name="z_pos" id="z_pos" />
+                        </div>
+                }
+            </div>
+            <div className="mt-6">
+                <Button>Send</Button>
+            </div>
+            {/* <div style={{ padding: "20px" }}>
+                <h1>WebSocket Client</h1>
+                <div>
+                    <button onClick={() => sendCommand("TURN_ON_LAMP")}>Turn ON LED</button>
+                    <button onClick={() => sendCommand("TURN_OFF_LAMP")}>Turn OFF LED</button>
+                </div>
+                <h2>Messages</h2>
+                <ul>
+                    {messages.map((msg, index) => (
+                        <li key={index}>{msg}</li>
+                    ))}
+                </ul>
+            </div> */}
+        </section>
+    </main>
+}
