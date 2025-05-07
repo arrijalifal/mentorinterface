@@ -25,13 +25,28 @@ export default function forwardKinematicsDH(jointAngles: number[]) {
   };
 
   // D-H parameter for 4 joints (in meters)
+  // const dhParams: [number, number, number, number][] = [
+  //   [jointAngles[0], 90, 0, 0.185],
+  //   [jointAngles[1] - 90, 0, 0.165, 0],
+  //   [jointAngles[2], 0, 0.150, 0],
+  //   [jointAngles[3], 90, 0, 0.110],
+  //   [0, 0, 0, 0.110],
+  // ];
+
   const dhParams: [number, number, number, number][] = [
-    [jointAngles[0], 90, 0, 0.185],
-    [jointAngles[1] - 90, 0, 0.165, 0],
-    [jointAngles[2], 0, 0.150, 0],
-    [jointAngles[3], 90, 0, 0.110],
+    [jointAngles[0], 90, 0, 18.5],
+    [jointAngles[1] - 90, 0, 16.5, 0],
+    [jointAngles[2], 0, 15.0, 0],
+    [jointAngles[3], 90, 0, 11.0],
     [0, 0, 0, 0.110],
   ];
+  // const dhParams: [number, number, number, number][] = [
+  //   [jointAngles[0], 90, 0, 0],
+  //   [jointAngles[1] - 90, 0, 16, 0],
+  //   [jointAngles[2], 0, 15, 0],
+  //   [jointAngles[3], 90, 12, 0],
+  //   [0, 0, 0, 0.110],
+  // ];
 
   let T = [
     [1, 0, 0, 0],
@@ -44,6 +59,6 @@ export default function forwardKinematicsDH(jointAngles: number[]) {
     T = multiply4x4(T, dhMatrix(theta, alpha, a, d));
   }
 
-  return {x: T[0][3], y: T[1][3], z: T[2][3]};
-  // return {x: T[0][3], y: T[2][3], z: T[1][3]};
+  // return {x: T[0][3], y: T[1][3], z: T[2][3]};
+  return {x: T[0][3], y: T[2][3], z: -(T[1][3])};
 }

@@ -1,26 +1,62 @@
 // pages/index.js
 'use client'
 import { useState, useEffect } from 'react';
-import RobotArm from '@/components/RobotArm';
-import { Canvas } from '@react-three/fiber';
 import Button from '@/components/Button';
 import inverseKinematics from '@/lib/inverseKinematics';
 import JointController from '@/components/JointController';
 import forwardKinematicsDH from '@/lib/forwardKinematicsDH';
+import { forwardKinematics, getPositionFromMatrix } from '@/lib/forwardKinematicsPitchOnly';
+import FK from '@/lib/forwardKinematics';
 import SimulationWindow from '@/components/SimulationWindow';
+
+type ProgramList = {
+    joint0: number;
+    joint1: number;
+    joint2: number;
+    joint3: number;
+}
+
+const dummyProgramList: ProgramList[] = [
+    {
+        joint0: 45,
+        joint1: 60,
+        joint2: 35,
+        joint3: 25,
+    },
+    {
+        joint0: 35,
+        joint1: 70,
+        joint2: -12,
+        joint3: 48,
+    },
+    {
+        joint0: -30,
+        joint1: 25,
+        joint2: -28,
+        joint3: -54,
+    },
+]
 
 const Home = () => {
     const [joint0, setJoint0] = useState(0);
     const [joint1, setJoint1] = useState(0);
     const [joint2, setJoint2] = useState(0);
     const [joint3, setJoint3] = useState(0);
-    // const [joint4, setJoint4] = useState(0);
     const [inversValue, setInversValue] = useState({ x: 0, y: 0, z: 0 });
+    const [fkJoint, setFkJoint] = useState({ joint1: [0, 0, 0], joint2: [0, 0, 0], joint3: [0, 0, 0] })
     const [fK, setFK] = useState({ x: 0, y: 0, z: 0 });
+    const [programList, setProgramList] = useState<ProgramList[]>(dummyProgramList);
 
     useEffect(() => {
-        const getFK = forwardKinematicsDH([joint0, joint1, joint2, joint3]);
-        setFK(getFK);
+        const T = forwardKinematics(joint0, joint1, joint2, joint3);
+        const pos = getPositionFromMatrix(T);
+        console.log(pos);
+        // const getFK = forwardKinematicsDH([joint0, joint1, joint2, joint3]);
+        // setFK(getFK);
+        setFK(pos);
+        const jointPositions = FK(16, 15, 12, joint0, joint1, joint2, joint3);
+        setFkJoint(jointPositions);
+        // console.log(jointPositions);
     }, [joint0, joint1, joint2, joint3]);
 
     const [mode, setMode] = useState('forward');
@@ -31,19 +67,39 @@ const Home = () => {
         setJoint1(result.joint1);
         setJoint2(result.joint2);
         setJoint3(result.joint3);
-        // setJoint4(result.joint4);
     }
 
+
+
     return (
-        <div className='w-full h-full lg:flex lg:flex-row flex flex-col overflow-hidden' id='cihuyy'>
+        <div className='w-full h-full lg:flex lg:flex-row flex flex-col' id='cihuyy'>
             <SimulationWindow
                 joint0={joint0}
                 joint1={joint1}
                 joint2={joint2}
                 joint3={joint3}
-            />
-            <section className='flex-1 flex flex-col w-full p-4 mt-5'>
-                <h1 className='text-center text-2xl font-semibold'>Manual Control</h1>
+                // fkJoint={fkJoint}
+                fK={fK}
+            >
+                <section className='h-full flex flex-col px-2'>
+                    <h3 className='text-center'>Program List</h3>
+                    <button
+                        className='w-fit border border-black rounded px-2 py-1 mb-3'
+                        onClick={ () => {setProgramList([])}}
+                    >Clear Sequence</button>
+                    <div className='flex-1 h-full flex flex-col gap-2 overflow-y-auto'>
+                        {
+                            programList.map((data, index) => (
+                                <div key={index} className='px-3 py-1 border'>
+                                    <p>0: {data.joint0}, 1: {data.joint1}, 2: {data.joint2}, 3: {data.joint3}</p>
+                                </div>
+                            ))
+                        }
+                    </div>
+                </section>
+            </SimulationWindow>
+            <section className='lg:w-1/2 h-full flex flex-col w-full p-4 mt-5 overflow-y-auto'>
+                <h1 className='text-center text-2xl font-semibold'>Sequence Control</h1>
                 <div className='mt-8 px-12'>
                     <div className="flex gap-3">
                         <Button onClick={() => setMode('forward')} active={(mode === 'forward')}>Forward Kinematics</Button>
@@ -55,12 +111,12 @@ const Home = () => {
                                 <div>
                                     <button
                                         className='border border-black rounded px-2 py-1'
-                                        onClick={() => { 
+                                        onClick={() => {
                                             setJoint0(0);
                                             setJoint1(0);
                                             setJoint2(0);
                                             setJoint3(0);
-                                        }}    
+                                        }}
                                     >
                                         Reset All Joints</button>
                                 </div>
@@ -70,15 +126,15 @@ const Home = () => {
                                     max={105}
                                     value={joint0}
                                     onChange={setJoint0}
-                                    onReset={() => {setJoint0(0)}}
+                                    onReset={() => { setJoint0(0) }}
                                 />
                                 <JointController
                                     jointName='Joint 1'
-                                    min={-90}
+                                    min={-180}
                                     max={90}
                                     value={joint1}
                                     onChange={setJoint1}
-                                    onReset={() => {setJoint1(0)}}
+                                    onReset={() => { setJoint1(0) }}
                                 />
                                 <JointController
                                     jointName='Joint 2'
@@ -86,7 +142,7 @@ const Home = () => {
                                     max={115}
                                     value={joint2}
                                     onChange={setJoint2}
-                                    onReset={() => {setJoint2(0)}}
+                                    onReset={() => { setJoint2(0) }}
                                 />
                                 <JointController
                                     jointName='Joint 3'
@@ -94,11 +150,23 @@ const Home = () => {
                                     max={70}
                                     value={joint3}
                                     onChange={setJoint3}
-                                    onReset={() => {setJoint3(0)}}
+                                    onReset={() => { setJoint3(0) }}
                                 />
                                 <div>
+                                    <button
+                                        className='px-2 py-1 border border-black rounded'
+                                        onClick={() => { setProgramList([...programList, { joint0: joint0, joint1: joint1, joint2: joint2, joint3: joint3 }])}}
+                                    >&lt;&lt; Add Sequence</button>
+                                </div>
+                                <div>
                                     <p>Posisi End Effector</p>
-                                    <p>x: {fK.x * 100}<br />y: {fK.y * 100}<br />z: {fK.z * 100}</p>
+                                    <p>x: {fK.x}<br />y: {fK.y}<br />z: {fK.z}</p>
+                                </div>
+                                <div>
+                                    <p>Posisi Tiap Joint</p>
+                                    <p>Joint 1 = x : {fkJoint.joint1[0]}, y : {fkJoint.joint1[1]}, z : {fkJoint.joint1[2]}</p>
+                                    <p>Joint 2 = x : {fkJoint.joint2[0]}, y : {fkJoint.joint2[1]}, z : {fkJoint.joint2[2]}</p>
+                                    <p>Joint 3 = x : {fkJoint.joint3[0]}, y : {fkJoint.joint3[1]}, z : {fkJoint.joint3[2]}</p>
                                 </div>
                             </div> :
                             <div className="flex flex-col gap-5">

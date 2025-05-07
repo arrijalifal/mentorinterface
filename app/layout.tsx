@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ConnectionStatus from "@/components/ConnectionStatus";
+import ConnectionStatus from "@/components/NavBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased w-screen h-screen overflow-x-hidden flex flex-col`}
       >
         <ConnectionStatus></ConnectionStatus>
-        <div className="flex-1">
+        <div className="flex-1 h-full">
           {children}
         </div>
       </body>

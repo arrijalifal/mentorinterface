@@ -1,110 +1,171 @@
+// pages/index.js
 'use client'
+import { useState, useEffect } from 'react';
+import RobotArm from '@/components/RobotArm';
+import { Canvas } from '@react-three/fiber';
+import Button from '@/components/Button';
+import inverseKinematics from '@/lib/inverseKinematics';
+import JointController from '@/components/JointController';
+import forwardKinematicsDH from '@/lib/forwardKinematicsDH';
 
-import Button from "@/components/Button";
-import { useState } from "react";
-import { useEffect } from "react";
-import ThreeScene from '@/components/ThreeScene';
-
-export default function Dashboard() {
-    const [mode, setMode] = useState('forward');
-    const [sliderValues, setSliderValues] = useState([0, 0, 0]);
-    const [messages, setMessages] = useState<string[]>([]);
-    const [input, setInput] = useState("");
-    const [ws, setWs] = useState<WebSocket>();
+const Home = () => {
+    const [joint0, setJoint0] = useState(0);
+    const [joint1, setJoint1] = useState(0);
+    const [joint2, setJoint2] = useState(0);
+    const [joint3, setJoint3] = useState(0);
+    const [cameraView, setCameraView] = useState('reset');
+    const [lockView, setLockView] = useState(true);
+    // const [joint4, setJoint4] = useState(0);
+    const [inversValue, setInversValue] = useState({ x: 0, y: 0, z: 0 });
+    const [fK, setFK] = useState({ x: 0, y: 0, z: 0 });
 
     useEffect(() => {
-        const websocket = new WebSocket("ws://192.168.7.72/ws");
+        const getFK = forwardKinematicsDH([joint0, joint1, joint2, joint3]);
+        setFK(getFK);
+    }, [joint0, joint1, joint2, joint3]);
 
-        websocket.onopen = () => {
-            console.log("Connected to WebSocket server");
-        };
+    const [mode, setMode] = useState('forward');
 
-        websocket.onmessage = (event) => {
-            console.log("Message from server:", event.data);
-            setMessages((prev) => [...prev, event.data]);
-        };
+    function handleInverseKinematics() {
+        const result = inverseKinematics(inversValue.x, inversValue.y, inversValue.z);
+        setJoint0(result.joint0);
+        setJoint1(result.joint1);
+        setJoint2(result.joint2);
+        setJoint3(result.joint3);
+        // setJoint4(result.joint4);
+    }
 
-        websocket.onclose = () => {
-            console.log("Disconnected from WebSocket server");
-        };
-
-        setWs(websocket);
-
-        return () => {
-            websocket.close();
-        };
-    }, []);
-
-    const sendCommand = (command: string) => {
-        if (ws) {
-            ws.send(command);
-        }
-    };
-
-    const handleSliderChange = (index: number, newValue: number) => {
-        const updatedValues = [...sliderValues];
-        updatedValues[index] = newValue;
-        setSliderValues(updatedValues);
-    };
-
-    return <main className="mt-10 lg:flex lg:justify-around">
-        <section>
-            <ThreeScene x={sliderValues[0]} y={sliderValues[1]} z={sliderValues[2]}/>
-        </section>
-        <section>
-
-            <div className="flex gap-3">
-                <Button onClick={() => setMode('forward')} active={(mode === 'forward')}>Forward Kinematics</Button>
-                <Button onClick={() => setMode('inverse')} active={(mode === 'inverse')} >Inverse Kinematics</Button>
-            </div>
-            <div>
-                <h1 className="capitalize text-4xl text-center my-6">{mode} kinematics mode</h1>
-                {
-                    (mode == 'forward') ?
-                        <div>
-                            <div className="grid gap-6">
-                                {sliderValues.map((value, index) => (
-                                    <div key={index} className="flex">
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="10"
-                                            step="0.1"
-                                            value={value}
-                                            className="w-full"
-                                            onChange={(e) => handleSliderChange(index, parseFloat(e.target.value))}
-                                        />
-                                        <p className="ml-3">{value}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div> :
-                        <div className="flex flex-col">
-                            <label htmlFor="x_pos">X Position</label>
-                            <input type="text" className="border" name="x_pos" id="x_pos" />
-                            <label htmlFor="y_pos">Y Position</label>
-                            <input type="text" className="border" name="y_pos" id="y_pos" />
-                            <label htmlFor="z_pos">Z Position</label>
-                            <input type="text" className="border" name="z_pos" id="z_pos" />
-                        </div>
-                }
-            </div>
-            <div className="mt-6">
-                <Button>Send</Button>
-            </div>
-            {/* <div style={{ padding: "20px" }}>
-                <h1>WebSocket Client</h1>
-                <div>
-                    <button onClick={() => sendCommand("TURN_ON_LAMP")}>Turn ON LED</button>
-                    <button onClick={() => sendCommand("TURN_OFF_LAMP")}>Turn OFF LED</button>
+    return (
+        <div className='w-full h-full lg:flex lg:flex-row flex flex-col overflow-hidden' id='cihuyy'>
+            <section className="lg:w-1/2 lg:h-1/2 h-1/3">
+                <Canvas className='bg-black rounded'>
+                    <RobotArm
+                        joint0={joint0}
+                        joint1={joint1}
+                        joint2={joint2}
+                        joint3={joint3}
+                        cameraView={cameraView}
+                        isViewLocked={lockView}
+                    />
+                    {/* Test FK */}
+                    <mesh position={[fK.x * 100, fK.y * 100, fK.z * 100]}>
+                        <sphereGeometry args={[5, 16, 16]} />
+                        <meshStandardMaterial color="blue" />
+                    </mesh>
+                </Canvas>
+                <div className='mt-1 flex justify-between px-2'>
+                    <div className='flex gap-3'>
+                        <button className='border border-black rounded px-2 py-1' onClick={() => { setCameraView('top') }}>Top</button>
+                        <button className='border border-black rounded px-2 py-1' onClick={() => { setCameraView('side') }}>Side</button>
+                        <button className='border border-black rounded px-2 py-1' onClick={() => { setCameraView('front') }}>Front</button>
+                        <button className='border border-black rounded px-2 py-1' onClick={() => { setCameraView('reset') }}>Reset</button>
+                    </div>
+                    <label htmlFor="lockview">
+                        <input type='checkbox' id='lockview' name='lockview' checked={lockView} onChange={() => setLockView((prev) => !prev)} />
+                        &nbsp;Lock View
+                    </label>
                 </div>
-                <h2>Messages</h2>
-                <ul>
-                    {messages.map((msg, index) => (
-                        <li key={index}>{msg}</li>
-                    ))}
-                </ul>
-            </div> */}
-        </section>
-    </main>
-}
+            </section>
+            <section className='flex-1 flex flex-col w-full p-4 mt-5'>
+                <h1 className='text-center text-2xl font-semibold'>Manual Control</h1>
+                <div className='mt-8 px-12'>
+                    <div className="flex gap-3">
+                        <Button onClick={() => setMode('forward')} active={(mode === 'forward')}>Forward Kinematics</Button>
+                        <Button onClick={() => setMode('inverse')} active={(mode === 'inverse')} >Inverse Kinematics</Button>
+                    </div>
+                    {
+                        (mode === 'forward') ?
+                            <div className='mt-12 flex flex-col gap-3'>
+                                <div>
+                                    <button
+                                        className='border border-black rounded px-2 py-1'
+                                        onClick={() => { 
+                                            setJoint0(0);
+                                            setJoint1(0);
+                                            setJoint2(0);
+                                            setJoint3(0);
+                                        }}    
+                                    >
+                                        Reset All Joints</button>
+                                </div>
+                                <JointController
+                                    jointName='Joint 0'
+                                    min={-105}
+                                    max={105}
+                                    value={joint0}
+                                    onChange={setJoint0}
+                                    onReset={() => {setJoint0(0)}}
+                                />
+                                <JointController
+                                    jointName='Joint 1'
+                                    min={-90}
+                                    max={90}
+                                    value={joint1}
+                                    onChange={setJoint1}
+                                    onReset={() => {setJoint1(0)}}
+                                />
+                                <JointController
+                                    jointName='Joint 2'
+                                    min={-115}
+                                    max={115}
+                                    value={joint2}
+                                    onChange={setJoint2}
+                                    onReset={() => {setJoint2(0)}}
+                                />
+                                <JointController
+                                    jointName='Joint 3'
+                                    min={-70}
+                                    max={70}
+                                    value={joint3}
+                                    onChange={setJoint3}
+                                    onReset={() => {setJoint3(0)}}
+                                />
+                                <div>
+                                    <p>Posisi End Effector</p>
+                                    <p>x: {fK.x * 100}<br />y: {fK.y * 100}<br />z: {fK.z * 100}</p>
+                                </div>
+                            </div> :
+                            <div className="flex flex-col gap-5">
+                                <label htmlFor="x_pos" className='mt-10'>X Position <br />
+                                    <input
+                                        type="text"
+                                        className="border w-full"
+                                        name="x_pos"
+                                        id="x_pos"
+                                        value={(inversValue.x)}
+                                        onChange={(e) => { setInversValue({ ...inversValue, x: Number(e.target.value) }) }} />
+                                </label>
+                                <label htmlFor="y_pos">Y Position <br />
+                                    <input
+                                        type="text"
+                                        className="border w-full"
+                                        name="y_pos"
+                                        id="y_pos"
+                                        value={(inversValue.y)}
+                                        onChange={(e) => { setInversValue({ ...inversValue, y: Number(e.target.value) }) }} />
+                                </label>
+                                <label htmlFor="z_pos">Z Position <br />
+                                    <input
+                                        type="text"
+                                        className="border w-full"
+                                        name="z_pos"
+                                        id="z_pos"
+                                        value={(inversValue.z)}
+                                        onChange={(e) => { setInversValue({ ...inversValue, z: Number(e.target.value) }) }} />
+                                </label>
+                                <div>
+                                    <button
+                                        className='border px-8 py-2 border-gray-400'
+                                        onClick={handleInverseKinematics}
+                                    >Set
+                                    </button>
+                                </div>
+                            </div>
+                    }
+                </div>
+            </section>
+        </div>
+    );
+};
+
+export default Home;
