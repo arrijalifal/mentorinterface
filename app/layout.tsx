@@ -26,10 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased w-screen h-screen overflow-x-hidden flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased w-screen h-screen overflow-hidden flex flex-col`}
       >
         <ConnectionStatus></ConnectionStatus>
-        <div className="flex-1 h-full">
+        <div className="h-full">
           {children}
         </div>
       </body>

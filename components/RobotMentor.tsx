@@ -24,21 +24,21 @@ export default function RobotMentor({ joint0, joint1, joint2, joint3 }: { joint0
         return deg * (Math.PI / 180);
     }
     
-    function dhMatrix(theta: number, d: number, a: number, alpha: number): THREE.Matrix4 {
-        const ct = Math.cos(theta);
-        const st = Math.sin(theta);
-        const ca = Math.cos(alpha);
-        const sa = Math.sin(alpha);
+    // function dhMatrix(theta: number, d: number, a: number, alpha: number): THREE.Matrix4 {
+    //     const ct = Math.cos(theta);
+    //     const st = Math.sin(theta);
+    //     const ca = Math.cos(alpha);
+    //     const sa = Math.sin(alpha);
         
-        const mat = new THREE.Matrix4();
-        mat.set(
-            ct, -st * ca, st * sa, a * ct,
-            st, ct * ca, -ct * sa, a * st,
-            0, sa, ca, d,
-            0, 0, 0, 1
-        );
-        return mat;
-    }
+    //     const mat = new THREE.Matrix4();
+    //     mat.set(
+    //         ct, -st * ca, st * sa, a * ct,
+    //         st, ct * ca, -ct * sa, a * st,
+    //         0, sa, ca, d,
+    //         0, 0, 0, 1
+    //     );
+    //     return mat;
+    // }
     
     useEffect(() => {
         const clonedScene = glb.scene.clone(true);

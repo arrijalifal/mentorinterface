@@ -33,15 +33,15 @@ const SimulationWindow = (
     const [lockView, setLockView] = useState(false);
     return (
         <section className="lg:w-1/2 lg:h-full h-1/2 rounded flex flex-col gap-3">
-            <div className="h-1/2">
-                <Canvas className='bg-black rounded-xl h-[50vh]'>
+            <div className="h-[30rem]">
+                <Canvas className='bg-black rounded-xl'>
                     <RobotArm
                         joint0={joint0}
                         joint1={joint1}
                         joint2={joint2}
                         joint3={joint3}
                         cameraView={cameraView}
-                        isViewLocked={lockView}
+                    isViewLocked={lockView}
                     />
                     {
                         (fK) ?
@@ -54,7 +54,7 @@ const SimulationWindow = (
                     }
                 </Canvas>
             </div>
-            <section className='flex flex-col px-2'>
+            <section className='h-fit flex flex-col px-2'>
                 <div className='flex justify-end items-center gap-3'>
                     <div className={`flex gap-3 ${(lockView) ? 'invisible' : 'visible'}`}>
                         <button className='border border-black rounded px-2 py-1' onClick={() => { setCameraView('top') }}>Top</button>

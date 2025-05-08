@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.buttonstyle{
+    @apply w-fit border border-black rounded px-2 py-1;
+}

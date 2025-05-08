@@ -32,14 +32,7 @@ function matMul(a: Matrix4x4, b: Matrix4x4): Matrix4x4 {
  */
 export function forwardKinematics(
     θ1: number, θ2: number, θ3: number, θ4: number): Matrix4x4 {
-  //   const T1 = dhTransform(θ1, 90, 0, 18.5 + 10);
-  //   const T2 = dhTransform(θ2, 0, -16.5 -5.5, 0);
-  //   const T3 = dhTransform(θ3, 0, -15.0 -5.5, 0);
 
-  //   // Combine T4 and T5 since θ5 = 0 (roll is ignored)
-  //   const T4 = dhTransform(θ4, 90, 0, 0);
-  //   const T5 = dhTransform(0, 0, 0, 11.0);
-  //   const T45 = matMul(T4, T5);
 
   const T1 = dhTransform(θ1, 90, 0, 18.5 + 10);
   const T2 = dhTransform(θ2, 0, -16.5 - 5.5, 0);

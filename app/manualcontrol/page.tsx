@@ -5,7 +5,7 @@ import RobotArm from '@/components/RobotArm';
 import { Canvas } from '@react-three/fiber';
 import Button from '@/components/Button';
 import inverseKinematics from '@/lib/inverseKinematics';
-import JointController from '@/components/JointController';
+import SliderJoint from '@/components/SliderJoint';
 import forwardKinematicsDH from '@/lib/forwardKinematicsDH';
 import SimulationWindow from '@/components/SimulationWindow';
 
@@ -41,7 +41,9 @@ const Home = () => {
                 joint1={joint1}
                 joint2={joint2}
                 joint3={joint3}
-            />
+            >
+                <div></div>
+            </SimulationWindow>
             <section className='flex-1 flex flex-col w-full p-4 mt-5'>
                 <h1 className='text-center text-2xl font-semibold'>Manual Control</h1>
                 <div className='mt-8 px-12'>
@@ -55,46 +57,46 @@ const Home = () => {
                                 <div>
                                     <button
                                         className='border border-black rounded px-2 py-1'
-                                        onClick={() => { 
+                                        onClick={() => {
                                             setJoint0(0);
                                             setJoint1(0);
                                             setJoint2(0);
                                             setJoint3(0);
-                                        }}    
+                                        }}
                                     >
                                         Reset All Joints</button>
                                 </div>
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 0'
                                     min={-105}
                                     max={105}
                                     value={joint0}
                                     onChange={setJoint0}
-                                    onReset={() => {setJoint0(0)}}
+                                    onReset={() => { setJoint0(0) }}
                                 />
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 1'
                                     min={-90}
                                     max={90}
                                     value={joint1}
                                     onChange={setJoint1}
-                                    onReset={() => {setJoint1(0)}}
+                                    onReset={() => { setJoint1(0) }}
                                 />
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 2'
                                     min={-115}
                                     max={115}
                                     value={joint2}
                                     onChange={setJoint2}
-                                    onReset={() => {setJoint2(0)}}
+                                    onReset={() => { setJoint2(0) }}
                                 />
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 3'
                                     min={-70}
                                     max={70}
                                     value={joint3}
                                     onChange={setJoint3}
-                                    onReset={() => {setJoint3(0)}}
+                                    onReset={() => { setJoint3(0) }}
                                 />
                                 <div>
                                     <p>Posisi End Effector</p>

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Button from '@/components/Button';
 import inverseKinematics from '@/lib/inverseKinematics';
-import JointController from '@/components/JointController';
-import forwardKinematicsDH from '@/lib/forwardKinematicsDH';
+import SliderJoint from '@/components/SliderJoint';
+// import forwardKinematicsDH from '@/lib/forwardKinematicsDH';
 import { forwardKinematics, getPositionFromMatrix } from '@/lib/forwardKinematicsPitchOnly';
 import FK from '@/lib/forwardKinematics';
 import SimulationWindow from '@/components/SimulationWindow';
@@ -35,6 +35,18 @@ const dummyProgramList: ProgramList[] = [
         joint2: -28,
         joint3: -54,
     },
+    {
+        joint0: -30,
+        joint1: 25,
+        joint2: -28,
+        joint3: -54,
+    },
+    {
+        joint0: -30,
+        joint1: 25,
+        joint2: -28,
+        joint3: -54,
+    },
 ]
 
 const Home = () => {
@@ -45,7 +57,10 @@ const Home = () => {
     const [inversValue, setInversValue] = useState({ x: 0, y: 0, z: 0 });
     const [fkJoint, setFkJoint] = useState({ joint1: [0, 0, 0], joint2: [0, 0, 0], joint3: [0, 0, 0] })
     const [fK, setFK] = useState({ x: 0, y: 0, z: 0 });
-    const [programList, setProgramList] = useState<ProgramList[]>(dummyProgramList);
+    const [programList, setProgramList] = useState<ProgramList[]>();
+    const [editMode, setEditMode] = useState(false);
+    const [editIndex, setEditIndex] = useState(-1);
+    // const [editData, setEditData] = useState({ index: 0, joints: [0, 0, 0, 0]})
 
     useEffect(() => {
         const T = forwardKinematics(joint0, joint1, joint2, joint3);
@@ -72,7 +87,7 @@ const Home = () => {
 
 
     return (
-        <div className='w-full h-full lg:flex lg:flex-row flex flex-col' id='cihuyy'>
+        <div className='w-full h-full lg:flex lg:flex-row overflow-hidden' id='cihuyy'>
             <SimulationWindow
                 joint0={joint0}
                 joint1={joint1}
@@ -81,17 +96,36 @@ const Home = () => {
                 // fkJoint={fkJoint}
                 fK={fK}
             >
-                <section className='h-full flex flex-col px-2'>
+                <section className='h-[22rem] flex flex-col px-2 border border-black'>
                     <h3 className='text-center'>Program List</h3>
-                    <button
-                        className='w-fit border border-black rounded px-2 py-1 mb-3'
-                        onClick={ () => {setProgramList([])}}
-                    >Clear Sequence</button>
-                    <div className='flex-1 h-full flex flex-col gap-2 overflow-y-auto'>
+                    <div className='my-3 flex justify-between items-center'>
+                        <button
+                            className='buttonstyle'
+                            onClick={() => { setProgramList([]) }}
+                        >Clear Sequence</button>
+                        <div className='flex gap-3'>
+                            <button type="button" className='buttonstyle'>Play Sequence</button>
+                            <button type="button" className='buttonstyle'>Pause</button>
+                            <button type="button" className='buttonstyle'>Stop</button>
+                        </div>
+                    </div>
+                    <div className='flex flex-col gap-2 overflow-y-auto pb-3'>
                         {
+                            (programList) &&
                             programList.map((data, index) => (
-                                <div key={index} className='px-3 py-1 border'>
-                                    <p>0: {data.joint0}, 1: {data.joint1}, 2: {data.joint2}, 3: {data.joint3}</p>
+                                <div
+                                    key={index}
+                                    className={`px-3 py-1 border cursor-pointer ${(index === editIndex)? 'bg-gray-200' : ''}`}
+                                    onClick={() => {
+                                        setEditMode(true);
+                                        setEditIndex(index);
+                                        setJoint0(data.joint0);
+                                        setJoint1(data.joint1);
+                                        setJoint2(data.joint2);
+                                        setJoint3(data.joint3);
+                                    }}
+                                >
+                                    <strong>{index + 1}</strong><p className='inline-block ml-3'>0: {data.joint0}, 1: {data.joint1}, 2: {data.joint2}, 3: {data.joint3}</p>
                                 </div>
                             ))
                         }
@@ -109,18 +143,22 @@ const Home = () => {
                         (mode === 'forward') ?
                             <div className='mt-12 flex flex-col gap-3'>
                                 <div>
-                                    <button
-                                        className='border border-black rounded px-2 py-1'
-                                        onClick={() => {
-                                            setJoint0(0);
-                                            setJoint1(0);
-                                            setJoint2(0);
-                                            setJoint3(0);
-                                        }}
-                                    >
-                                        Reset All Joints</button>
+                                    {
+                                        (!editMode)?
+                                        <button
+                                            className='border border-black rounded px-2 py-1'
+                                            onClick={() => {
+                                                setJoint0(0);
+                                                setJoint1(0);
+                                                setJoint2(0);
+                                                setJoint3(0);
+                                            }}
+                                        >
+                                                Reset All Joints</button>
+                                            : <h3>Edit Data</h3>
+                                    }
                                 </div>
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 0'
                                     min={-105}
                                     max={105}
@@ -128,7 +166,7 @@ const Home = () => {
                                     onChange={setJoint0}
                                     onReset={() => { setJoint0(0) }}
                                 />
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 1'
                                     min={-180}
                                     max={90}
@@ -136,7 +174,7 @@ const Home = () => {
                                     onChange={setJoint1}
                                     onReset={() => { setJoint1(0) }}
                                 />
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 2'
                                     min={-115}
                                     max={115}
@@ -144,7 +182,7 @@ const Home = () => {
                                     onChange={setJoint2}
                                     onReset={() => { setJoint2(0) }}
                                 />
-                                <JointController
+                                <SliderJoint
                                     jointName='Joint 3'
                                     min={-70}
                                     max={70}
@@ -153,21 +191,47 @@ const Home = () => {
                                     onReset={() => { setJoint3(0) }}
                                 />
                                 <div>
-                                    <button
-                                        className='px-2 py-1 border border-black rounded'
-                                        onClick={() => { setProgramList([...programList, { joint0: joint0, joint1: joint1, joint2: joint2, joint3: joint3 }])}}
-                                    >&lt;&lt; Add Sequence</button>
+                                    {
+                                        (editMode) ?
+                                            <div className='flex gap-3'>
+                                                {
+                                                    (programList) &&
+                                                    <button
+                                                        className='buttonstyle'
+                                                        onClick={() => {
+                                                            const newData = [...programList];
+                                                            newData[editIndex] = { joint0, joint1, joint2, joint3 };
+                                                            setProgramList(newData);
+                                                            setEditMode(false);
+                                                            setEditIndex(-1);
+                                                        }}
+                                                    >Apply</button>
+                                                }
+                                                <button
+                                                    className='buttonstyle'
+                                                    onClick={() => {
+                                                        setEditMode(false);
+                                                        setEditIndex(-1);
+                                                    }}
+                                                >Cancel</button>
+                                            </div>
+                                            :
+                                            <button
+                                                className='buttonstyle'
+                                                onClick={() => { setProgramList((programList) ? [...programList, { joint0: joint0, joint1: joint1, joint2: joint2, joint3: joint3 }] : [{ joint0: joint0, joint1: joint1, joint2: joint2, joint3: joint3 }]) }}
+                                            >&lt;&lt; Add Sequence</button>
+                                    }
                                 </div>
                                 <div>
-                                    <p>Posisi End Effector</p>
+                                    <p>Posisi End Effector Perhitungan</p>
                                     <p>x: {fK.x}<br />y: {fK.y}<br />z: {fK.z}</p>
                                 </div>
-                                <div>
+                                {/* <div>
                                     <p>Posisi Tiap Joint</p>
                                     <p>Joint 1 = x : {fkJoint.joint1[0]}, y : {fkJoint.joint1[1]}, z : {fkJoint.joint1[2]}</p>
                                     <p>Joint 2 = x : {fkJoint.joint2[0]}, y : {fkJoint.joint2[1]}, z : {fkJoint.joint2[2]}</p>
                                     <p>Joint 3 = x : {fkJoint.joint3[0]}, y : {fkJoint.joint3[1]}, z : {fkJoint.joint3[2]}</p>
-                                </div>
+                                </div> */}
                             </div> :
                             <div className="flex flex-col gap-5">
                                 <label htmlFor="x_pos" className='mt-10'>X Position <br />
