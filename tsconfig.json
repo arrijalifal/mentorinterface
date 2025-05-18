@@ -7,7 +7,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "CommonJS",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/ThreeScene.tsx.backup", "app/page.tsx", "app/manualcontrol/page.tsx.backup", "components/RobotArm.tsx", "components/RobotArm.tsx.backup.backup", "components/RobotArm.tsx.backup", "lib/forwardKinematics.ts", "components/RobotMentor.tsx", "components/RobotArm.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/ThreeScene.tsx.backup", "app/page.tsx", "app/manualcontrol/page.tsx.backup", "components/RobotArm.tsx", "components/RobotArm.tsx.backup.backup", "components/RobotArm.tsx.backup", "lib/forwardKinematics.ts", "components/RobotMentor.tsx.tsx", "components/RobotArm.tsx", "components/RobotMentor.tsx", "native/serialportHelper.ts", "native/serialportHelper.js", "app/api/moverobot/route.ts.backup", "server.ts.backup", "gptcode/movingAverage.ts.0"],
   "exclude": ["node_modules"]
 }

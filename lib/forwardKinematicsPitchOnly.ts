@@ -50,7 +50,10 @@ export function forwardKinematics(
 
   // Rotate from Z-up (DH) to Y-up (Three.js)
   const RxNeg90: Matrix4x4 =
-      [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]];
+    [[1, 0, 0, 0],
+      [0, 0, 1, 0],
+      [0, -1, 0, 0],
+      [0, 0, 0, 1]];
 
   return matMul(RxNeg90, T);
 }

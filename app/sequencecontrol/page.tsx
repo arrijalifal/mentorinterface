@@ -8,6 +8,7 @@ import SliderJoint from '@/components/SliderJoint';
 import { forwardKinematics, getPositionFromMatrix } from '@/lib/forwardKinematicsPitchOnly';
 import FK from '@/lib/forwardKinematics';
 import SimulationWindow from '@/components/SimulationWindow';
+import axios from 'axios';
 
 type ProgramList = {
     joint0: number;
@@ -62,16 +63,31 @@ const Home = () => {
     const [editIndex, setEditIndex] = useState(-1);
     // const [editData, setEditData] = useState({ index: 0, joints: [0, 0, 0, 0]})
 
+    
+    
     useEffect(() => {
+        async function sendData() {
+            const response = await axios.post(
+                'http://localhost:5000/joint_control',
+                {
+                    joint1: joint0,
+                    joint2: joint1,
+                    joint3: joint2,
+                    joint4: joint3,
+                    joint5: 0,
+                    joint6: 0,
+                }
+            );
+        }
         const T = forwardKinematics(joint0, joint1, joint2, joint3);
         const pos = getPositionFromMatrix(T);
         console.log(pos);
+        sendData();
         // const getFK = forwardKinematicsDH([joint0, joint1, joint2, joint3]);
         // setFK(getFK);
         setFK(pos);
         const jointPositions = FK(16, 15, 12, joint0, joint1, joint2, joint3);
         setFkJoint(jointPositions);
-        // console.log(jointPositions);
     }, [joint0, joint1, joint2, joint3]);
 
     const [mode, setMode] = useState('forward');
@@ -84,10 +100,8 @@ const Home = () => {
         setJoint3(result.joint3);
     }
 
-
-
     return (
-        <div className='w-full h-full lg:flex lg:flex-row overflow-hidden' id='cihuyy'>
+        <div className='w-full h-full lg:flex lg:flex-row' id='cihuyy'>
             <SimulationWindow
                 joint0={joint0}
                 joint1={joint1}
@@ -96,7 +110,7 @@ const Home = () => {
                 // fkJoint={fkJoint}
                 fK={fK}
             >
-                <section className='h-[22rem] flex flex-col px-2 border border-black'>
+                <section className='flex flex-col px-2 border border-black'>
                     <h3 className='text-center'>Program List</h3>
                     <div className='my-3 flex justify-between items-center'>
                         <button
@@ -132,7 +146,7 @@ const Home = () => {
                     </div>
                 </section>
             </SimulationWindow>
-            <section className='lg:w-1/2 h-full flex flex-col w-full p-4 mt-5 overflow-y-auto'>
+            <section className='lg:w-1/2 h-full flex flex-col w-full p-4 mt-5 box-border'>
                 <h1 className='text-center text-2xl font-semibold'>Sequence Control</h1>
                 <div className='mt-8 px-12'>
                     <div className="flex gap-3">
@@ -222,10 +236,10 @@ const Home = () => {
                                             >&lt;&lt; Add Sequence</button>
                                     }
                                 </div>
-                                <div>
+                                {/* <div>
                                     <p>Posisi End Effector Perhitungan</p>
                                     <p>x: {fK.x}<br />y: {fK.y}<br />z: {fK.z}</p>
-                                </div>
+                                </div> */}
                                 {/* <div>
                                     <p>Posisi Tiap Joint</p>
                                     <p>Joint 1 = x : {fkJoint.joint1[0]}, y : {fkJoint.joint1[1]}, z : {fkJoint.joint1[2]}</p>

@@ -32,8 +32,8 @@ const SimulationWindow = (
     const [cameraView, setCameraView] = useState<'top' | 'side' | 'front'>('front');
     const [lockView, setLockView] = useState(false);
     return (
-        <section className="lg:w-1/2 lg:h-full h-1/2 rounded flex flex-col gap-3">
-            <div className="h-[30rem]">
+        <section className="lg:w-1/2 lg:h-full h-1/2 rounded flex flex-col gap-3 overflow-y-auto">
+            <div className="h-[20rem]">
                 <Canvas className='bg-black rounded-xl'>
                     <RobotArm
                         joint0={joint0}
@@ -41,7 +41,7 @@ const SimulationWindow = (
                         joint2={joint2}
                         joint3={joint3}
                         cameraView={cameraView}
-                    isViewLocked={lockView}
+                        isViewLocked={lockView}
                     />
                     {
                         (fK) ?

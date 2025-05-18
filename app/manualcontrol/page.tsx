@@ -1,27 +1,63 @@
 // pages/index.js
 'use client'
-import { useState, useEffect } from 'react';
-import RobotArm from '@/components/RobotArm';
-import { Canvas } from '@react-three/fiber';
+import { useState, useEffect, useMemo } from 'react';
 import Button from '@/components/Button';
 import inverseKinematics from '@/lib/inverseKinematics';
 import SliderJoint from '@/components/SliderJoint';
-import forwardKinematicsDH from '@/lib/forwardKinematicsDH';
 import SimulationWindow from '@/components/SimulationWindow';
+import { forwardKinematics, getPositionFromMatrix } from '@/lib/forwardKinematicsPitchOnly';
+import axios from 'axios';
+import useStore, { useWebSocket } from '@/lib/store';
 
 const Home = () => {
     const [joint0, setJoint0] = useState(0);
     const [joint1, setJoint1] = useState(0);
     const [joint2, setJoint2] = useState(0);
     const [joint3, setJoint3] = useState(0);
+    const [joint4, setJoint4] = useState(0);
+    const [joint5, setJoint5] = useState(0);
+    const [roll, setRoll] = useState(0);
+    const [pitch, setPitch] = useState(0)
+    const [gripperOrientation, setGripperOrientation] = useState(false);
+    const [socket, setSocket] = useState<WebSocket>();
     // const [joint4, setJoint4] = useState(0);
     const [inversValue, setInversValue] = useState({ x: 0, y: 0, z: 0 });
     const [fK, setFK] = useState({ x: 0, y: 0, z: 0 });
+    const { ws, setWS, setIsConnected } = useWebSocket();
 
     useEffect(() => {
-        const getFK = forwardKinematicsDH([joint0, joint1, joint2, joint3]);
-        setFK(getFK);
-    }, [joint0, joint1, joint2, joint3]);
+        if (!ws) return;
+        ws.onopen = () => {
+            console.log("Terhubung ke WebSocket");
+            setSocket(ws);
+        };
+
+        ws.onclose = () => {
+            console.log("Terputus dari WebSocket");
+        }
+
+        ws.onerror = (error) => {
+            console.log("Websocket Error: ", error);
+        }
+
+        return () => {
+            if (ws) ws.close();
+        }
+    }, [ws]);
+
+    // Pengiriman data tiap joint melalui endpoint
+    useEffect(() => {
+        const T = forwardKinematics(joint0, joint1, joint2, joint3);
+        const pos = getPositionFromMatrix(T);
+        // console.log(pos);
+        // sendData();
+        setFK(pos);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(`j ${joint0} ${joint1} ${joint2} ${joint3} ${joint4} ${joint5}`);
+        } else {
+            console.log("Can't send message to websocket");
+        }
+    }, [joint0, joint1, joint2, joint3, joint4, joint5, socket, ws]);
 
     const [mode, setMode] = useState('forward');
 
@@ -62,6 +98,10 @@ const Home = () => {
                                             setJoint1(0);
                                             setJoint2(0);
                                             setJoint3(0);
+                                            setJoint4(0);
+                                            setJoint5(0);
+                                            setRoll(0);
+                                            setPitch(0);
                                         }}
                                     >
                                         Reset All Joints</button>
@@ -77,7 +117,7 @@ const Home = () => {
                                 <SliderJoint
                                     jointName='Joint 1'
                                     min={-90}
-                                    max={90}
+                                    max={100}
                                     value={joint1}
                                     onChange={setJoint1}
                                     onReset={() => { setJoint1(0) }}
@@ -90,13 +130,122 @@ const Home = () => {
                                     onChange={setJoint2}
                                     onReset={() => { setJoint2(0) }}
                                 />
+                                <button
+                                    className={`border border-black rounded w-fit buttonstyle`}
+                                    onClick={() => setGripperOrientation((p) => !p)}
+                                >
+                                    {(gripperOrientation) ? 'Individual Joint' : 'Orientation'}
+                                </button>
+                                {
+                                    (gripperOrientation) ?
+                                        <div>
+                                            <label>
+                                                Roll :
+                                                <input
+                                                    type="text"
+                                                    name="" id=""
+                                                    className="w-10 text-right"
+                                                    value={roll}
+                                                    onChange={(e) => {
+                                                        const prevValue = roll;
+                                                        if (e.target.value === "") setRoll(0);
+                                                        else if (Number.isNaN(parseInt(e.target.value))) {
+                                                            alert("INPUT MUST BE A NUMBER!");
+                                                            setRoll(prevValue);
+                                                        }
+                                                        else setRoll(parseInt(e.target.value));
+                                                    }}
+                                                />°
+                                                <button hidden={(roll === 0)} className="ml-3" onClick={() => {
+                                                    setRoll(0);
+                                                    setJoint3(0);
+                                                    setJoint4(0);
+                                                }}
+                                                >↻
+                                                </button>
+                                                <br />
+                                                <input
+                                                    type="range"
+                                                    min={-100}
+                                                    max={100}
+                                                    // step="0.01"
+                                                    value={roll}
+                                                    className='w-full'
+                                                    onChange={(e) => {
+                                                        console.log("nilai roll geser -" + e.target.value);
+                                                        setRoll(parseInt(e.target.value));
+                                                        // if (joint3 >= -70 && joint3 <= 70) setJoint3((p) => p + parseInt(e.target.value));
+                                                        // if (joint4 >= -70 && joint4 <= 70) setJoint4((p) => p - parseInt(e.target.value));
+                                                        setJoint3(parseInt(e.target.value));
+                                                        setJoint4(-(parseInt(e.target.value)))
+                                                    }}
+                                                />
+                                            </label>
+                                            <label>
+                                                Pitch :
+                                                <input
+                                                    type="text"
+                                                    name="" id=""
+                                                    className="w-10 text-right"
+                                                    value={pitch}
+                                                    onChange={(e) => {
+                                                        const prevValue = pitch;
+                                                        if (e.target.value === "") setPitch(0);
+                                                        else if (Number.isNaN(parseInt(e.target.value))) {
+                                                            alert("INPUT MUST BE A NUMBER!");
+                                                            setPitch(prevValue);
+                                                        }
+                                                        else setPitch(parseInt(e.target.value));
+                                                    }}
+                                                />°
+                                                <button hidden={(pitch === 0)} className="ml-3" onClick={() => {
+                                                    setPitch(0);
+                                                    setJoint3(0);
+                                                    setJoint4(0);
+                                                }}>↻
+                                                </button>
+                                                <br />
+                                                <input
+                                                    type="range"
+                                                    min={-100}
+                                                    max={100}
+                                                    step="0.01"
+                                                    value={pitch}
+                                                    className='w-full'
+                                                    onChange={(e) => {
+                                                        setPitch(parseInt(e.target.value));
+                                                        setJoint3((p) => (p < parseInt(e.target.value))?p + parseInt(e.target.value): p - parseInt(e.target.value));
+                                                        setJoint4((p) => (p < parseInt(e.target.value))?p + parseInt(e.target.value): p - parseInt(e.target.value));
+                                                    }}
+                                                />
+                                            </label>
+                                        </div> :
+                                        <>
+                                            <SliderJoint
+                                                jointName='Joint 3'
+                                                min={-70}
+                                                max={70}
+                                                value={joint3}
+                                                onChange={setJoint3}
+                                                onReset={() => { setJoint3(0) }}
+                                            />
+                                            <SliderJoint
+                                                jointName='Joint 4'
+                                                min={-70}
+                                                max={70}
+                                                value={joint4}
+                                                onChange={setJoint4}
+                                                onReset={() => { setJoint4(0) }}
+                                            />
+                                        </>
+                                }
                                 <SliderJoint
-                                    jointName='Joint 3'
+                                    jointName='Joint 5'
                                     min={-70}
                                     max={70}
-                                    value={joint3}
-                                    onChange={setJoint3}
-                                    onReset={() => { setJoint3(0) }}
+                                    value={joint5}
+                                    onChange={setJoint5}
+                                    onReset={() => { setJoint5(0) }}
                                 />
                                 <div>
                                     <p>Posisi End Effector</p>
