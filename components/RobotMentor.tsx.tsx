@@ -127,7 +127,7 @@ export default function RobotMentor({ joint0, joint1, joint2, joint3, isGradual 
 
     return (
         <group ref={groupRef}>
-            <axesHelper args={[30]} />
+            {/* <axesHelper args={[30]} /> */}
             <gridHelper args={[200, 20]} />
         </group>
     );

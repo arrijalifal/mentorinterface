@@ -6,7 +6,7 @@ import { Environment, OrbitControls } from '@react-three/drei';
 import { ReactNode, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-const RobotModel = dynamic(() => import('./RobotMentor.tsx'), { ssr: false });
+const RobotModel = dynamic(() => import('./RobotMentor'), { ssr: false });
 
 const RobotArm = (
     {
@@ -52,21 +52,13 @@ const RobotArm = (
                 y = 20;
                 z = 90;
         }
-        // reset
-        // camera.position.set(30, 20, 90);
-        // front
-        // camera.position.set(0, 10, 90);
-        // side
-        // camera.position.set(90, 10, 0);
-        // top
-        // camera.position.set(0, 90, 0);
         camera.position.set(x, y, z);
     }, [cameraView, camera.position]);
 
     return (
         <>
-            <axesHelper args={[30]} />
-            <Environment preset='studio' />
+            {/* <axesHelper args={[30]} /> */}
+            <Environment preset='city' />
             <RobotModel joint0={joint0} joint1={joint1} joint2={joint2} joint3={joint3}/>
             {
                 (!isViewLocked) ? <OrbitControls target={[0, 15, 0]} /> : <></>

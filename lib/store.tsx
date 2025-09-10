@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface Coordinate {
     x: number;
@@ -13,33 +14,35 @@ export interface JointPositionProps {
     joint3: Coordinate
 }
 interface StoreState {
-    espUrl: string;
-    positions?: number[][];
+    websocketURL: string;
     isConnected?: boolean;
-    setUrl: (newUrl: string) => void;
-    setPositions?: (newPositions: number[][]) => void;
+    setWebsocketURL: (newUrl: string) => void;
 }
 
-const useStore = create<StoreState>((set) => ({
-    espUrl: "",
-    positions: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+const useStore = create<StoreState>(
+    (set) => ({
+    websocketURL: "ws://localhost:5000",
+        // websocketURL: "https://13ebe7e99943.ngrok-free.app",
     isConnected: false,
-    setUrl: (newUrl) => set({ espUrl: newUrl }),
-    setPositions: (newPositions) => set({ positions: newPositions }),
-}));
+    setWebsocketURL: (newUrl) => set({ websocketURL: newUrl }),
+    })
+);
 
 interface UseWebSocketProps {
     ws: WebSocket | null;
     isConnected: boolean;
+    feedbackJoint?: Array<number>;
     setWS: (newWS: WebSocket) => void;
     setIsConnected?: (newState: boolean) => void;
+    setFeedbackJoint?: (newFeedback: Array<number>) => void;
 }
 
 export const useWebSocket = create<UseWebSocketProps>((set) => ({
     ws: null,
     isConnected: false,
-    setWS: (newWS) => set({ws: newWS}),
-    setIsConnected: (newState) => set({isConnected: newState})
+    setWS: (newWS) => set({ ws: newWS }),
+    setIsConnected: (newState) => set({ isConnected: newState }),
+    setFeedbackJoint: (newFeedback) => set({ feedbackJoint: newFeedback })
 }))
 
 export default useStore;

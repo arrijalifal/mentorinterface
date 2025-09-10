@@ -163,5 +163,5 @@ app.post('/joint_control', async (req: Request, res: Response) => {
 server.listen(PORT, () => {
   console.log(`Server berjalan di port http://localhost:${PORT}`);
   initSerialConnection();
-  watchSerialPort();  // selalu cek COM3
+  watchSerialPort(); 
 })

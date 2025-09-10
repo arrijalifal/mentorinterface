@@ -35,7 +35,7 @@ export default function forwardKinematicsDH(jointAngles: number[]) {
 
   const dhParams: [number, number, number, number][] = [
     [jointAngles[0], 90, 0, 18.5],
-    [jointAngles[1] - 90, 0, 16.5, 0],
+    [jointAngles[1] + 90, 0, 16.5, 0],
     [jointAngles[2], 0, 15.0, 0],
     [jointAngles[3], 90, 0, 11.0],
     [0, 0, 0, 0.110],

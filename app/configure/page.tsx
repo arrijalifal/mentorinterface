@@ -5,27 +5,28 @@ import { FormEvent, useState } from "react";
 import useStore from "@/lib/store";
 
 export default function Configure() {
-    const { espUrl, setUrl } = useStore();
-    const [espurl, setEspurl] = useState(espUrl);
+    const { websocketURL, setWebsocketURL } = useStore();
+    const [wsURL, setWsURL] = useState(websocketURL);
     const router = useRouter();
 
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        setUrl(espurl);
-        return router.push('/');
+        setWebsocketURL(wsURL);
+        alert(`websocket berubah menjadi ${wsURL}`)
+        setTimeout(() => router.push('/'), 100) ;
     }
     return <main className="flex justify-center items-center h-full">
         <form onSubmit={(e) => handleSubmit(e)}>
             <div className="text-center">
-                <label htmlFor="url" className="text-xl">ESP URL:
+                <label htmlFor="url" className="text-xl">WEBSOCKET URL:
                     <br />
                     <input
                         type="text"
                         id="url"
                         name="url"
                         className="mt-4 border border-gray-400 focus:outline-gray-500"
-                        value={espurl}
-                        onChange={(e) => setEspurl(e.target.value)}
+                        value={wsURL}
+                        onChange={(e) => setWsURL(e.target.value)}
                     />
                 </label>
                 <br />

@@ -8,9 +8,7 @@ export default function Home() {
         <div className="flex flex-col gap-3">
           <ButtonLink href={'/manualcontrol'}>Manual Control</ButtonLink>
           <ButtonLink href={'/sequencecontrol'}>Sequence Control</ButtonLink>
-          <ButtonLink href="/debugmonitor">Monitor & Debug</ButtonLink>
           <ButtonLink href={'/configure'}>Configure</ButtonLink>
-          <ButtonLink href={'/dashboard'}>Connect</ButtonLink>
         </div>
       </div>
     </div>

@@ -1,0 +1,144 @@
+'use client'
+
+import { Base, Gripper, Link1, Link2, Link3 } from "@/components";
+import { Environment, Grid, OrbitControls } from "@react-three/drei";
+import { useEffect, useRef } from "react";
+// import inverseKinematicsWithGripper from "@/lib/inverseKinematics";
+import * as THREE from 'three';
+// import { inverseKinematicsRobot } from "@/lib/IKRobot";
+// import { inverseKinematicsFromMatrix } from "@/lib/inverseKinematics";
+
+export default function Scene({ theta1, theta2, theta3, theta4, point, isInverse }: { theta1: number; theta2: number; theta3: number; theta4: number; point: { x: number, y: number, z: number }; isInverse: boolean | false }) {      
+    function printMatrix(label: string, m: THREE.Matrix4) {
+        const e = m.elements;
+        return console.log(`${label} = [
+            [${e[0].toFixed(3)}, ${e[4].toFixed(3)}, ${e[8].toFixed(3)}, ${e[12].toFixed(3)}],
+            [${e[1].toFixed(3)}, ${e[5].toFixed(3)}, ${e[9].toFixed(3)}, ${e[13].toFixed(3)}],
+            [${e[2].toFixed(3)}, ${e[6].toFixed(3)}, ${e[10].toFixed(3)}, ${e[14].toFixed(3)}],
+            [${e[3].toFixed(3)}, ${e[7].toFixed(3)}, ${e[11].toFixed(3)}, ${e[15].toFixed(3)}]
+            ]`
+        );
+    }
+
+    const gripperRef = useRef<THREE.Object3D>(null);
+    const link3Ref = useRef<THREE.Object3D>(null);
+    const link2Ref = useRef<THREE.Object3D>(null);
+    const link1Ref = useRef<THREE.Object3D>(null);
+    const baseRef = useRef<THREE.Object3D>(null);
+    const fw = useRef<THREE.Object3D>(null);
+    const tujuan = useRef<THREE.Object3D>(null); // Point tujuan ditinjau dari (x, y, 0)
+    const targetP = useRef<THREE.Object3D>(null) // Point tujuan ditinjau dari jarak end-effector ke joint terakhir
+    // ATUR XYZ
+    const x = (20);
+    const y = 25;
+    const z = (25);
+    const atan2 = Math.atan2(z, x - (-10.88)); // Perhitungan rotasi untuk joint 1
+    const xTarget = -Math.sqrt((x + 10.88) ** 2 + z ** 2) - 10.88;
+    const rotasiY = 180 - THREE.MathUtils.radToDeg(atan2);
+    const L1 = 17.398;
+    const L2 = 15.1391;
+    const D = (x ** 2 + z ** 2 - (L1 ** 2) - (L2 ** 2)) / (2 * L1 * L2);
+    const tt2 = Math.acos(D)
+    const rotasi_t2 = THREE.MathUtils.radToDeg(tt2);
+    const tt1 = atan2 - Math.atan2(L2 * Math.sin(tt2), L1 + L2 * Math.cos(tt2));
+    const rotasi_t1 = 360 - THREE.MathUtils.radToDeg(tt1);
+    // ATUR THETA
+    const thetas = {
+        theta1: rotasiY,
+        theta2: rotasi_t1,
+        theta3: rotasi_t2,
+        theta4: theta4
+    }
+    useEffect(() => {
+        let t2, t3, t4, t5;
+        console.log('rotasiY = ' + rotasiY);
+        console.log('rotasi atan = ' + atan2);
+        console.log('Rotasi Theta 1 = ' + rotasi_t1);
+        console.log('x, z = ' + x + " " + z);
+        if (isInverse) {
+            // t2 = THREE.MathUtils.degToRad(inverseResult.theta1);
+            // t3 = THREE.MathUtils.degToRad(inverseResult.theta2);
+            // t4 = THREE.MathUtils.degToRad(inverseResult.theta3);
+            // t5 = THREE.MathUtils.degToRad(inverseResult.theta4);
+        } else {
+            t2 = THREE.MathUtils.degToRad(theta1);
+            t3 = THREE.MathUtils.degToRad(theta2);
+            t4 = THREE.MathUtils.degToRad(theta3);
+            t5 = THREE.MathUtils.degToRad(theta4);
+        }
+        const baseIdentity = baseRef.current!.matrix.identity();
+        const TLink1 = new THREE.Matrix4().makeTranslation(-10.88, 8.4, -0.030502);
+        const link1Rot = new THREE.Matrix4().makeRotationY(t2);
+        const link1Rotation = new THREE.Matrix4().multiplyMatrices(baseIdentity, TLink1).multiply(link1Rot);
+        printMatrix('link1Rotation', link1Rotation);
+        const TLink2 = new THREE.Matrix4().makeTranslation(0, 18.6, 4.36835);
+        const link2Rot = new THREE.Matrix4().makeRotationZ(t3);
+        const link2Rotation = new THREE.Matrix4().multiplyMatrices(link1Rotation, TLink2).multiply(link2Rot);
+        printMatrix('link2Rotation', link2Rotation);
+        const TLink3 = new THREE.Matrix4().makeTranslation(-17.398, 0, 0.56835);
+        const link3Rot = new THREE.Matrix4().makeRotationZ(t4);
+        const link3Rotation = new THREE.Matrix4().multiplyMatrices(link2Rotation, TLink3).multiply(link3Rot);
+        printMatrix('link3Rotation', link3Rotation);
+        const TGripper = new THREE.Matrix4().makeTranslation(-15.1391, 0, -4.64517);
+        const gripperRot = new THREE.Matrix4().makeRotationZ(t5);
+        const gripperRotation = new THREE.Matrix4().multiplyMatrices(link3Rotation, TGripper).multiply(gripperRot);
+        printMatrix('gripperRotation', gripperRotation);
+        const TEffector = new THREE.Matrix4().makeTranslation(-10.6172, 0, 0);
+        const effectorPoint = new THREE.Matrix4().identity();
+        const endEffector = new THREE.Matrix4().multiplyMatrices(gripperRotation, TEffector).multiply(effectorPoint);
+        printMatrix('endEffector', endEffector);
+
+        // Atur matrixAutoUpdate ke false biar ga tiba-tiba berubah
+        gripperRef.current!.matrixAutoUpdate = false;
+        link3Ref.current!.matrixAutoUpdate = false;
+        link2Ref.current!.matrixAutoUpdate = false;
+        link1Ref.current!.matrixAutoUpdate = false;
+        fw.current!.matrixAutoUpdate = false;
+
+        // Apply perhitungan matrix ke masing-masing objek
+        link1Ref.current!.matrix.copy(link1Rotation);
+        link2Ref.current!.matrix.copy(link2Rotation);
+        link3Ref.current!.matrix.copy(link3Rotation);
+        gripperRef.current!.matrix.copy(gripperRotation);
+        fw.current!.matrix.copy(endEffector);
+        tujuan.current!.updateMatrixWorld(true);
+        const TendEffectorz0 = new THREE.Matrix4().makeTranslation(xTarget, y, 0);
+        const Tendz0Rot = new THREE.Matrix4().makeRotationZ(THREE.MathUtils.degToRad(-(180 - thetas.theta4)));
+        const realTargetRotation = new THREE.Matrix4().multiplyMatrices(baseIdentity, TendEffectorz0).multiply(Tendz0Rot); // Posisi end-effector berdasarkan (x, y, 0)
+        const posisiTempEndEffector = new THREE.Matrix4().multiplyMatrices(realTargetRotation, TEffector).multiply(new THREE.Matrix4().identity());
+        targetP.current!.matrixAutoUpdate = false;
+        targetP.current!.matrix.copy(posisiTempEndEffector);
+
+
+    }, [theta1, theta2, theta3, theta4, point, isInverse, x, z, rotasiY, atan2]);
+    return <>
+        <Environment preset="city" />
+        <OrbitControls />
+        <axesHelper args={[100]} />
+        {/* End-effector pada ujung robot */}
+        <mesh ref={fw}>
+            <sphereGeometry args={[2, 32, 32]} />
+            <meshBasicMaterial color={'blue'} />
+        </mesh>
+        {/* Target tujuan end-effector */}
+        <mesh position={[x, y, z]}>
+            <sphereGeometry args={[2, 32, 32]} />
+            <meshBasicMaterial color={'green'} />
+        </mesh>
+        {/* Target tujuan ditinjau dari (-x, 0, 0). -x karena titik 0 end-effector berada pada -x*/}
+        <mesh position={[xTarget, y, 0]} ref={tujuan}>
+            <sphereGeometry args={[2, 32, 32]} />
+            <meshBasicMaterial color={'yellow'} />
+        </mesh>
+        <mesh ref={targetP}>
+            <sphereGeometry args={[2, 32, 32]} />
+            <meshBasicMaterial color={'red'} />
+        </mesh>
+        <Grid args={[100, 100]} />
+        <Base ref={baseRef} />
+        <Link1 ref={link1Ref} />
+        <Link2 ref={link2Ref} />
+        <Link3 ref={link3Ref} />
+        <Gripper ref={gripperRef} />
+    </>
+}

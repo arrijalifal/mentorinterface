@@ -1,4 +1,4 @@
-export default function SliderJoint({ jointName, min, max, value, onChange, onReset }: { jointName: string; min: number; max: number; value: number; onChange: (val: number) => void; onReset: () => void }) {
+export default function SliderJoint({ jointName, min, max, value, onChange, onReset }: { jointName: string; min: number; max: number; value: number; onChange: (val: number) => void; onReset: () => void; }) {
     return <label>
         {jointName} :
         <input

@@ -29,9 +29,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased w-screen h-screen overflow-x-hidden flex flex-col`}
       >
         <ConnectionStatus></ConnectionStatus>
-        <div className="">
+        <main className="w-full h-full overflow-hidden">
           {children}
-        </div>
+        </main>
       </body>
     </html>
   );

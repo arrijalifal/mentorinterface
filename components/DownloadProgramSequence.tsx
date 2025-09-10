@@ -1,0 +1,29 @@
+import React from 'react';
+
+export default function DownloadProgramSequence({ filename, data }: { filename: string; data: Array<object>}) {
+    const handleDownload = () => {
+        // 2. Ubah ke string JSON
+        const jsonStr = JSON.stringify(data, null, 2); // `null, 2` untuk indentasi agar rapi
+
+        // 3. Buat blob
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+
+        // 4. Buat URL dan element <a>
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.json`; // nama file
+
+        // 5. Klik link untuk trigger download
+        a.click();
+
+        // 6. Hapus URL dari memori
+        URL.revokeObjectURL(url);
+    };
+
+    return (
+        <button onClick={handleDownload} className='buttonstyle'>
+            Download JSON
+        </button>
+    );
+}

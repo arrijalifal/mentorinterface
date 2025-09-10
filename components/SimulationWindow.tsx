@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Canvas } from "@react-three/fiber"
 import RobotArm from "./RobotArm"
+import { AxesHelper } from "three";
 
 const SimulationWindow = (
 
@@ -33,8 +34,9 @@ const SimulationWindow = (
     const [lockView, setLockView] = useState(false);
     return (
         <section className="lg:w-1/2 lg:h-full h-1/2 rounded flex flex-col gap-3 overflow-y-auto">
-            <div className="h-[20rem]">
+            <div className="h-[40rem]">
                 <Canvas className='bg-black rounded-xl'>
+                {/* <axesHelper args={[20]} /> */}
                     <RobotArm
                         joint0={joint0}
                         joint1={joint1}
